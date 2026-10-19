@@ -32,9 +32,16 @@ document.querySelectorAll("button.copy").forEach((b) => {
   });
 });
 
-// Page views (GoatCounter, no cookies). Only counts on the live site.
+// Page views (GoatCounter). Only counts on the live site.
+// Your own visits: open any page once with ?me=hide on each browser to stop counting it (?me=show undoes it).
 (function () {
   if (location.hostname !== "sulhua.com" && location.hostname !== "www.sulhua.com") return;
+  const me = new URLSearchParams(location.search).get("me");
+  if (me === "show") document.cookie = "gc_skip=; path=/; max-age=0";
+  if (me === "hide" || (me !== "show" && /(?:^|; )gc_skip=1/.test(document.cookie))) {
+    document.cookie = "gc_skip=1; path=/; max-age=31536000; SameSite=Lax; Secure"; // re-set on each visit so Safari keeps it
+    return;
+  }
   const q = new URLSearchParams({
     p: location.pathname, t: document.title, r: document.referrer,
     q: location.search, s: [screen.width, screen.height, devicePixelRatio || 1].join(","), rnd: Math.random().toString(36).slice(2),
