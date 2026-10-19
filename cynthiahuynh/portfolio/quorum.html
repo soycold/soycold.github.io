@@ -230,11 +230,19 @@
                 removeItem(k) { document.cookie = k + "=; path=/; max-age=0"; },
             };
             try { Object.defineProperty(window, "localStorage", { value: sessionCookieStore, configurable: true }); } catch (e) {}
-            // Count link opens before the password is entered (GoatCounter path /locked/...).
-            if ((location.hostname === "sulhua.com" || location.hostname === "www.sulhua.com") && !sessionCookieStore.getItem("staticrypt_passphrase")) {
+            // Count link opens before the password is entered (GoatCounter path /locked/...). Skips your own visits (?me=hide).
+            (function () {
+                if (location.hostname !== "sulhua.com" && location.hostname !== "www.sulhua.com") return;
+                const me = new URLSearchParams(location.search).get("me");
+                if (me === "show") document.cookie = "gc_skip=; path=/; max-age=0";
+                if (me === "hide" || (me !== "show" && /(?:^|; )gc_skip=1/.test(document.cookie))) {
+                    document.cookie = "gc_skip=1; path=/; max-age=31536000; SameSite=Lax; Secure"; // re-set on each visit so Safari keeps it
+                    return;
+                }
+                if (sessionCookieStore.getItem("staticrypt_passphrase")) return;
                 const gq = new URLSearchParams({ p: "/locked" + location.pathname, t: "Password page", r: document.referrer, q: location.search, rnd: Math.random().toString(36).slice(2) });
                 new Image().src = "https://soycold.goatcounter.com/count?" + gq;
-            }
+            })();
             const staticryptInitiator = ((function(){
   const exports = {};
   const cryptoEngine = ((function(){
